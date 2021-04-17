@@ -7,6 +7,9 @@ import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteOpenHelper;
 import android.widget.Toast;
 
+import java.util.ArrayList;
+import java.util.List;
+
 public class DbHelper extends SQLiteOpenHelper {
 
     private Context context;
@@ -46,15 +49,15 @@ public class DbHelper extends SQLiteOpenHelper {
             Toast.makeText(context,"Success",Toast.LENGTH_SHORT).show();
         }
     }
-
-    void addData(String title, String detail, String imageUrl){
+    
+    void updateData(ItemData itemData){
         SQLiteDatabase db = this.getWritableDatabase();
         ContentValues cv = new ContentValues();
-        cv.put("title", title);
-        cv.put("detail", detail);
-        cv.put("imageUrl",imageUrl);
+        cv.put("title", itemData.title);
+        cv.put("detail", itemData.detail);
+        cv.put("imageUrl",itemData.imageUrl);
 
-        long result =db.insert(ITEM_TABLE_NAME, null, cv);
+        long result =db.update(ITEM_TABLE_NAME, cv, "id = " + itemData.id, null);
         if(result == -1){
             Toast.makeText(context,"Failed",Toast.LENGTH_SHORT).show();
         } else {
@@ -72,6 +75,7 @@ public class DbHelper extends SQLiteOpenHelper {
         }
         return cursor;
     }
+
 
     public static class ItemData{
         private Integer id;

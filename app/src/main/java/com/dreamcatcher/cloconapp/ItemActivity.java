@@ -2,6 +2,7 @@ package com.dreamcatcher.cloconapp;
 
 import androidx.appcompat.app.AppCompatActivity;
 
+import android.content.Intent;
 import android.os.Bundle;
 import android.view.View;
 import android.widget.Button;
@@ -9,13 +10,13 @@ import android.widget.EditText;
 import android.widget.ImageView;
 import android.widget.TextView;
 
+import com.squareup.picasso.Picasso;
+
 public class ItemActivity extends AppCompatActivity {
 
     ImageView itemImageView;
     TextView itemIdText;
-    EditText itemTitleText;
-    EditText itemDetailText;
-    EditText itemImageUrlText;
+    EditText itemTitleText, itemDetailText, itemImageUrlText;
     Button submitButton;
 
     DbHelper myDb;
@@ -34,16 +35,41 @@ public class ItemActivity extends AppCompatActivity {
 
         myDb = new DbHelper(this);
 
+        // Data binding from MainActivity
+        if(getIntent().hasExtra("id")){
+            String id = getIntent().getStringExtra("id");
+            String title = getIntent().getStringExtra("title");
+            String detail = getIntent().getStringExtra("detail");
+            String imageUrl = getIntent().getStringExtra("imageUrl");
+            itemIdText.setText(id);
+            itemTitleText.setText(title);
+            itemDetailText.setText(detail);
+            itemImageUrlText.setText(imageUrl);
+            Picasso.get().load(imageUrl).into(itemImageView);
+        }
+
+        // Data Insert | Update action
         submitButton.setOnClickListener(new View.OnClickListener(){
             @Override
             public void onClick(View v) {
+                String id = itemIdText.getText().toString().trim();
                 DbHelper.ItemData itemData = new DbHelper.ItemData(
-                        null,
-                        "my suit",
-                        "good for work!",
-                        "https://20210413sto.blob.core.windows.net/item/womens_suit_biz_01.jpg");
-                myDb.addData(itemData);
+                        id.isEmpty()? null : Integer.parseInt(id),
+                        itemTitleText.getText().toString().trim(),
+                        itemDetailText.getText().toString().trim(),
+                        itemImageUrlText.getText().toString().trim()
+                );
+                if(id.isEmpty())
+                {
+                    myDb.addData(itemData);
+                } else {
+                    myDb.updateData(itemData);
+                }
+
+                Intent intent = new Intent(ItemActivity.this, MainActivity.class);
+                startActivity(intent);
             }
         });
+
     }
 }

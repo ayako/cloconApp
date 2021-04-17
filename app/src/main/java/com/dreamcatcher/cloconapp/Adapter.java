@@ -2,14 +2,18 @@ package com.dreamcatcher.cloconapp;
 
 import android.content.Context;
 import android.content.Intent;
+import android.media.Image;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.TextView;
 
 import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.RecyclerView;
+
+import com.squareup.picasso.Picasso;
 
 import java.util.ArrayList;
 
@@ -39,6 +43,7 @@ public class Adapter extends RecyclerView.Adapter<Adapter.MyViewHolder> {
         holder.itemTitleText.setText(String.valueOf(itemTitleList.get(position)));
         holder.itemDetailText.setText(String.valueOf(itemDetailList.get(position)));
         holder.itemImageUrlText.setText(String.valueOf(itemImageUrlList.get(position)));
+        Picasso.get().load(String.valueOf(itemImageUrlList.get(position))).into(holder.itemImageView);
 
         holder.linearLayout.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -61,6 +66,7 @@ public class Adapter extends RecyclerView.Adapter<Adapter.MyViewHolder> {
 
     public class MyViewHolder extends RecyclerView.ViewHolder{
         TextView itemIdText, itemTitleText, itemDetailText, itemImageUrlText;
+        ImageView itemImageView;
         LinearLayout linearLayout;
 
         public MyViewHolder(@NonNull View itemView) {
@@ -69,6 +75,7 @@ public class Adapter extends RecyclerView.Adapter<Adapter.MyViewHolder> {
             itemTitleText = itemView.findViewById(R.id.itemlist_title);
             itemDetailText = itemView.findViewById(R.id.itemlist_detail);
             itemImageUrlText = itemView.findViewById(R.id.itemlist_imageUrl);
+            itemImageView = itemView.findViewById(R.id.itemlist_image);
 
             linearLayout = itemView.findViewById(R.id.itemlist);
 
