@@ -35,7 +35,7 @@
             android:layout_margin="16dp">
 
             <ImageView
-                android:id="@+id/item_image"
+                android:id="@+id/profile_image"
                 android:src="@drawable/ic_baseline_person_24"
                 android:layout_width="240dp"
                 android:layout_height="240dp"
