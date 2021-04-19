@@ -6,6 +6,7 @@ import androidx.appcompat.widget.Toolbar;
 import android.app.Activity;
 import android.content.Context;
 import android.content.Intent;
+import android.database.Cursor;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.net.Uri;
@@ -13,13 +14,17 @@ import android.os.Bundle;
 import android.os.Environment;
 import android.view.View;
 import android.widget.Button;
+import android.widget.EditText;
 import android.widget.ImageView;
+import android.widget.TextView;
 
 import com.squareup.picasso.Picasso;
 
+import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
+import java.io.FileReader;
 import java.io.IOException;
 import java.io.InputStream;
 
@@ -27,7 +32,13 @@ import java.io.InputStream;
 public class ProfileActivity extends AppCompatActivity {
 
     ImageView profileImageView;
+    TextView profileIdText;
+    EditText profileNameText, profileEmailText, profileIntroText, profileLocationText;
     Button submitButton;
+
+    DbHelper myDb;
+    File userInfoFile;
+
     private static final int RESULT_PICK_IMAGEFILE = 1001;
     private String imageFileName;
     private File imageFile;
@@ -39,13 +50,53 @@ public class ProfileActivity extends AppCompatActivity {
         setContentView(R.layout.activity_profile);
 
         Context context = getApplicationContext();
-        imageFileName = "profile.jpg";
-        imageFile = new File(context.getExternalFilesDir(Environment.DIRECTORY_PICTURES), imageFileName);
+        myDb = new DbHelper(this);
+        userInfoFile = new File(context.getFilesDir(), "profile.text");
+
+//        imageFileName = "profile.jpg";
+//        imageFile = new File(context.getExternalFilesDir(Environment.DIRECTORY_PICTURES), imageFileName);
 
         profileImageView = findViewById(R.id.profile_image);
-        if(imageFile.exists()){
-            readProfileImage(imageFile);
+        profileIdText = findViewById(R.id.profile_id);
+        profileNameText = findViewById(R.id.profile_name);
+        profileEmailText = findViewById(R.id.profile_email);
+        profileIntroText = findViewById(R.id.profile_intro);
+        profileLocationText = findViewById(R.id.profile_location);
+
+//        if(imageFile.exists()){
+//            readProfileImage(imageFile);
+//        }
+
+        // Get and Set UserInfo if exists
+        String email = null;
+        if(userInfoFile.exists())
+        {
+            try( BufferedReader br = new BufferedReader(new FileReader(userInfoFile));
+            ){
+                email = br.readLine();
+            } catch (IOException e) {}
         }
+
+        if(email != null){
+            profileEmailText.setText(email);
+
+            Cursor cursor = myDb.readProfileData();
+            while (cursor.moveToNext()) {
+                if (cursor.getString(cursor.getColumnIndex("email")).equals(email)){
+                    imageFileName = cursor.getString(cursor.getColumnIndex("imageUrl"));
+                    if (imageFileName != null){
+                        imageFile = new File(context.getExternalFilesDir(Environment.DIRECTORY_PICTURES), imageFileName);
+                        readProfileImage(imageFile);
+                    }
+
+                    profileIdText.setText(cursor.getString(cursor.getColumnIndex("id")));
+                    profileNameText.setText(cursor.getString(cursor.getColumnIndex("name")));
+                    profileIntroText.setText(cursor.getString(cursor.getColumnIndex("intro")));
+                    profileLocationText.setText(cursor.getString(cursor.getColumnIndex("location")));
+                }
+            }
+        }
+
 
         // Detect Profile Image View Clicked
         profileImageView.setOnClickListener(new View.OnClickListener() {
@@ -63,14 +114,39 @@ public class ProfileActivity extends AppCompatActivity {
         submitButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
+
+                // Save Profile Image
                 if(uri != null)
                 {
+                    if(imageFileName == null) {
+                        imageFileName = profileEmailText.getText().toString()
+                                .replace('@', '_')
+                                .replace('.', '_') + ".jpg";
+                    }
                     if(isExternalStorageWritable()){
-                        saveProfileImage(imageFile, imageFileName);
+                        File imageFile = new File(context.getExternalFilesDir(Environment.DIRECTORY_PICTURES), imageFileName);
+                        saveProfileImage(imageFile);
                     }
                 }
 
-//                finish(); //Back previous page
+                // Save Profile Data to Database
+                String id = profileIdText.getText().toString().trim();
+                DbHelper.ProfileData profileData = new DbHelper.ProfileData(
+                        id.isEmpty()? null : Integer.parseInt(id),
+                        profileNameText.getText().toString().trim(),
+                        profileEmailText.getText().toString().trim(),
+                        profileIntroText.getText().toString().trim(),
+                        profileLocationText.getText().toString().trim(),
+                        imageFileName
+                );
+                if(id.isEmpty())
+                {
+                    myDb.addData(profileData);
+                } else {
+                    myDb.updateData(profileData);
+                }
+
+                finish(); //Back previous page
             }
         });
 
@@ -106,11 +182,11 @@ public class ProfileActivity extends AppCompatActivity {
                 Bitmap bitmap = BitmapFactory.decodeStream(inputStream);
                 profileImageView.setImageBitmap(bitmap);
             }
-            catch (IOException exception) { }
+            catch (IOException e) { }
         }
     }
 
-    public void saveProfileImage(File imageFile, String imageFileName){
+    public void saveProfileImage(File imageFile){
         try(InputStream inputStream = getContentResolver().openInputStream(uri);
             FileOutputStream output = new FileOutputStream(imageFile)
         ) {
