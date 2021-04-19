@@ -1,5 +1,6 @@
 package com.dreamcatcher.cloconapp;
 
+import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.widget.Toolbar;
 
@@ -17,6 +18,7 @@ import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ImageView;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import com.squareup.picasso.Picasso;
 
@@ -53,19 +55,12 @@ public class ProfileActivity extends AppCompatActivity {
         myDb = new DbHelper(this);
         userInfoFile = new File(context.getFilesDir(), "profile.text");
 
-//        imageFileName = "profile.jpg";
-//        imageFile = new File(context.getExternalFilesDir(Environment.DIRECTORY_PICTURES), imageFileName);
-
         profileImageView = findViewById(R.id.profile_image);
         profileIdText = findViewById(R.id.profile_id);
         profileNameText = findViewById(R.id.profile_name);
         profileEmailText = findViewById(R.id.profile_email);
         profileIntroText = findViewById(R.id.profile_intro);
         profileLocationText = findViewById(R.id.profile_location);
-
-//        if(imageFile.exists()){
-//            readProfileImage(imageFile);
-//        }
 
         // Get and Set UserInfo if exists
         String email = null;
@@ -96,7 +91,6 @@ public class ProfileActivity extends AppCompatActivity {
                 }
             }
         }
-
 
         // Detect Profile Image View Clicked
         profileImageView.setOnClickListener(new View.OnClickListener() {
@@ -131,22 +125,28 @@ public class ProfileActivity extends AppCompatActivity {
 
                 // Save Profile Data to Database
                 String id = profileIdText.getText().toString().trim();
-                DbHelper.ProfileData profileData = new DbHelper.ProfileData(
-                        id.isEmpty()? null : Integer.parseInt(id),
-                        profileNameText.getText().toString().trim(),
-                        profileEmailText.getText().toString().trim(),
-                        profileIntroText.getText().toString().trim(),
-                        profileLocationText.getText().toString().trim(),
-                        imageFileName
-                );
-                if(id.isEmpty())
-                {
-                    myDb.addData(profileData);
-                } else {
-                    myDb.updateData(profileData);
-                }
+                String email = profileEmailText.getText().toString().trim();
 
-                finish(); //Back previous page
+                if (!email.matches(".*@.*")){
+                    Toast.makeText(context,"Please type email correctly (it should have @)", Toast.LENGTH_LONG).show();
+                } else {
+                    DbHelper.ProfileData profileData = new DbHelper.ProfileData(
+                            id.isEmpty()? null : Integer.parseInt(id),
+                            profileNameText.getText().toString().trim(),
+                            profileEmailText.getText().toString().trim(),
+                            profileIntroText.getText().toString().trim(),
+                            profileLocationText.getText().toString().trim(),
+                            imageFileName
+                    );
+                    if(id.isEmpty())
+                    {
+                        myDb.addData(profileData);
+                    } else {
+                        myDb.updateData(profileData);
+                    }
+
+                    finish(); //Back previous page
+                }
             }
         });
 

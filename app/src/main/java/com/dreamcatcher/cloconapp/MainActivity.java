@@ -17,7 +17,7 @@ import java.util.ArrayList;
 
 public class MainActivity extends AppCompatActivity {
 
-    DbHelper myDB;
+    DbHelper myDb;
     Adapter adapter;
     RecyclerView recyclerView;
     ArrayList<String> itemIdList, itemTitleList, itemDetailList, itemImageUrlList;
@@ -29,7 +29,7 @@ public class MainActivity extends AppCompatActivity {
         setContentView(R.layout.activity_main);
 
         // Place data into RecyclerView
-        myDB = new DbHelper(MainActivity.this);
+        myDb = new DbHelper(MainActivity.this);
         recyclerView = findViewById(R.id.item_recyclerview);
 
         itemIdList = new ArrayList<>();
@@ -37,7 +37,7 @@ public class MainActivity extends AppCompatActivity {
         itemDetailList = new ArrayList<>();
         itemImageUrlList = new ArrayList<>();
 
-        Cursor cursor = myDB.readData();
+        Cursor cursor = myDb.readItemData();
         while (cursor.moveToNext()){
             itemIdList.add(cursor.getString(0));
             itemTitleList.add(cursor.getString(1));
